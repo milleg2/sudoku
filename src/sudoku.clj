@@ -95,14 +95,32 @@
       :else
         (recur row (inc col)))))
 
+(defn solve-helper [board empty-coord values]
+  (cond
+    (nil? empty-coord)
+      board
+    (empty? values)
+      board
+    :else
+      (let [new-board (set-value-at board
+                                    empty-coord
+                                    (first values))
+            new-empty-coord (find-empty-point new-board)
+            valid-values (if (nil? new-empty-coord)
+                           #{}
+                           (valid-values-for new-board
+                                             new-empty-coord))
+            solution (solve-helper new-board
+                                   new-empty-coord
+                                   valid-values)]
+        (if (valid-solution? solution)
+          solution
+          (solve-helper board 
+                        empty-coord 
+                        (rest values))))))
+
 (defn solve [board]
   (let [empty-coord (find-empty-point board)]
-    (if (nil? empty-coord)
-      (if (valid-solution? board)
-        board
-        '())
-      (for [v (range 10)]
-        (let [new-board
-              (set-value-at board empty-coord v)]
-          (solve new-board))))))
+    (solve-helper board empty-coord
+                  (valid-values-for board empty-coord))))
 
